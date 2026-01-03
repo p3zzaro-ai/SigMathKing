@@ -1,5 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -29,8 +29,9 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Refresh session jika ada
+  // Penting: Kita tidak await getUser di sini agar performa lebih cepat,
+  // tapi kita kembalikan instance supabase agar bisa dipakai di middleware.ts
   await supabase.auth.getUser()
 
-  return supabaseResponse
+  return { supabase, response: supabaseResponse }
 }

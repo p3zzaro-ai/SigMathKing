@@ -1,54 +1,84 @@
-import { login } from './actions'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+// app/login/page.tsx
+'use client'
 
-// 1. Ubah tipe props menjadi Promise
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ message?: string }>
-}) {
-  // 2. Tunggu (await) data searchParams sebelum digunakan
-  const params = await searchParams
-  const message = params.message
+import { useState } from 'react'
+import { loginAction } from '@/app/actions/auth'
+import { useRouter } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
+
+export default function LoginPage() {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const router = useRouter()
+
+  const handleSubmit = async (formData: FormData) => {
+    setLoading(true)
+    setError('')
+    
+    const res = await loginAction(formData)
+    
+    if (res?.error) {
+      setError(res.error)
+      setLoading(false)
+    } else {
+      // Refresh router untuk memicu middleware
+      router.refresh() 
+    }
+  }
 
   return (
-    <div className="flex h-screen items-center justify-center bg-gray-100">
-      <Card className="w-[350px]">
-        <CardHeader>
-          <CardTitle>Math Mastery 10</CardTitle>
-          <CardDescription>Masuk untuk mulai belajar.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Tampilkan Pesan Error Jika Ada */}
-          {message && (
-            <div className="mb-4 p-3 rounded bg-red-100 border border-red-400 text-red-700 text-sm">
-              {message}
+    <div className="flex h-screen items-center justify-center bg-slate-50">
+      <div className="w-full max-w-md space-y-8 rounded-xl bg-white p-10 shadow-lg border border-slate-100">
+        <div className="text-center">
+          <h2 className="mt-6 text-3xl font-extrabold text-slate-900">
+            SigMathKing
+          </h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Masuk untuk mulai belajar Matematika
+          </p>
+        </div>
+
+        <form action={handleSubmit} className="mt-8 space-y-6">
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="email" className="sr-only">Email address</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="relative block w-full rounded-md border-slate-300 px-3 py-2 text-slate-900 placeholder-slate-500 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border"
+                placeholder="Alamat Email"
+              />
             </div>
+            <div>
+              <label htmlFor="password" className="sr-only">Password</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                className="relative block w-full rounded-md border-slate-300 px-3 py-2 text-slate-900 placeholder-slate-500 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border"
+                placeholder="Kata Sandi"
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="text-red-500 text-sm text-center">{error}</div>
           )}
 
-          <form action={login} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" placeholder="nama@sekolah.id" required />
-            </div>
-            
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="full_name">Nama Lengkap (Khusus Siswa Baru)</Label>
-              <Input id="full_name" name="full_name" type="text" placeholder="Budi Santoso" />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" name="password" type="password" required />
-            </div>
-            
-            <Button type="submit" className="w-full">Masuk / Daftar</Button>
-          </form>
-        </CardContent>
-      </Card>
+          <button
+            type="submit"
+            disabled={loading}
+            className="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Masuk'}
+          </button>
+        </form>
+      </div>
     </div>
   )
 }
